@@ -58,3 +58,4 @@ mongoose.connect(MONGO_URI)
   });
 
 module.exports = app;
+console.log("API UPDATED VERSION");
