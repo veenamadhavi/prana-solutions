@@ -2,13 +2,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext(null);
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+// Reads from Vercel env var — falls back to localhost for local dev
+const API = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('prana_token'));
 
+  // Set base URL once
   axios.defaults.baseURL = API;
 
   useEffect(() => {

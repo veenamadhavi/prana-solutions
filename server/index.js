@@ -6,47 +6,43 @@ const dotenv = require('dotenv');
 dotenv.config();
 const app = express();
 
-// CORS
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://prana-solutions-acl7.vercel.app'
-  ],
-  credentials: true
-}));
+// ── CORS — must be BEFORE all routes ────────────────────────────────
+// Allow all origins explicitly (handles Render + Vercel + localhost)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,PATCH,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  // Respond immediately to preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
+app.use(cors({ origin: '*', methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
 app.use(express.json());
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/bookings', require('./routes/bookings'));
+// ── Routes ───────────────────────────────────────────────────────────
+app.use('/api/auth',       require('./routes/auth'));
+app.use('/api/bookings',   require('./routes/bookings'));
 app.use('/api/caregivers', require('./routes/caregivers'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/users',      require('./routes/users'));
+app.use('/api/reviews',    require('./routes/reviews'));
 
-// Root
-app.get('/', (req, res) => {
-  res.json({ message: 'Prana Solutions API running ✅' });
-});
+app.get('/', (req, res) => res.json({ message: 'Prana Solutions API is running ✓' }));
 
-// ✅ ADD THIS
-app.get('/api', (req, res) => {
-  res.json({ message: 'API working ✅' });
-});
+// ── Database + Server ─────────────────────────────────────────────────
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/prana-solutions';
 
-// Config
-const PORT = process.env.PORT || 10000;
-const MONGO_URI = process.env.MONGO_URI;
-
-// DB connect
 mongoose.connect(MONGO_URI)
   .then(() => {
-    console.log('MongoDB connected ✅');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT} 🚀`));
+    console.log('✓ MongoDB connected');
+    app.listen(PORT, () => console.log(`✓ Server running on port ${PORT}`));
   })
   .catch(err => {
-    console.error('MongoDB connection error:', err.message);
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    console.error('✗ MongoDB connection error:', err.message);
+    app.listen(PORT, () => console.log(`Server running on port ${PORT} (no DB)`));
   });
 
 module.exports = app;
